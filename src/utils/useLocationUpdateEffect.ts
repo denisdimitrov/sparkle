@@ -6,6 +6,7 @@ import { updateUserProfile } from "pages/Account/helpers";
 const LOCATION_INCREMENT_SECONDS = 10;
 
 export const updateLocationData = (user: UserInfo, roomName: string | null) => {
+  console.log("updating location", roomName);
   updateUserProfile(user.uid, {
     lastSeenAt: new Date().getTime() / 1000,
     lastSeenIn: roomName,
@@ -30,7 +31,7 @@ export const useLocationUpdateEffect = (
     updateLocationData(user, roomName);
     const intervalId = setInterval(
       () => updateLocationData(user, roomName),
-      5 * 60 * 1000
+      1 * 5 * 1000
     );
 
     return () => clearInterval(intervalId);
