@@ -115,6 +115,7 @@ const Jazz: React.FunctionComponent<PropsType> = ({ setUserList, venue }) => {
         }}
         className={`scrollable-area ${seatedAtTable && "at-table"}`}
       >
+        {console.log(venue)}
         <div className="container-in-row">
           <div className="video-wrapper">
             {seatedAtTable && (
@@ -129,60 +130,62 @@ const Jazz: React.FunctionComponent<PropsType> = ({ setUserList, venue }) => {
                 seatedAtTable ? "participants-container" : "jazz-video"
               }`}
             >
-              <div
-                className={`${
-                  seatedAtTable
-                    ? `participant-container-${capacity} video-participant`
-                    : "full-height-video"
-                }`}
-              >
+              {!venueToUse.hideVideo && (
                 <div
-                  className="iframe-container"
-                  style={{
-                    height: seatedAtTable ? "calc(100% - 55px)" : "500px",
-                  }}
+                  className={`${
+                    seatedAtTable
+                      ? `participant-container-${capacity} video-participant`
+                      : "full-height-video"
+                  }`}
                 >
-                  {venueToUse.iframeUrl && (
-                    <iframe
-                      key="main-event"
-                      title="main event"
-                      className="youtube-video"
-                      src={`${venueToUse.iframeUrl}?autoplay=1`}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture;"
-                    />
-                  )}
-                  {!venueToUse.iframeUrl && (
-                    <div className="youtube-video">
-                      Embedded Video URL not yet set up
-                    </div>
-                  )}
-                </div>
-                <div className="call-out-band-container">
-                  <div className="emoji-container">
-                    {Reactions.map((reaction) => (
-                      <button
-                        key={reaction.name}
-                        className="reaction"
-                        onClick={() =>
-                          user && reactionClicked(user, reaction.type)
-                        }
-                        id={`send-reaction-${reaction.type}`}
-                      >
-                        <span role="img" aria-label={reaction.ariaLabel}>
-                          {reaction.text}
-                        </span>
-                      </button>
-                    ))}
+                  <div
+                    className="iframe-container"
+                    style={{
+                      height: seatedAtTable ? "calc(100% - 55px)" : "500px",
+                    }}
+                  >
+                    {venueToUse.iframeUrl && (
+                      <iframe
+                        key="main-event"
+                        title="main event"
+                        className="youtube-video"
+                        src={`${venueToUse.iframeUrl}?autoplay=1`}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture;"
+                      />
+                    )}
+                    {!venueToUse.iframeUrl && (
+                      <div className="youtube-video">
+                        Embedded Video URL not yet set up
+                      </div>
+                    )}
                   </div>
-                  <CallOutMessageForm
-                    onSubmit={handleBandMessageSubmit(onBandMessageSubmit)}
-                    ref={registerBandMessage({ required: true })}
-                    isMessageToTheBandSent={isMessageToTheBandSent}
-                    placeholder="Shout out to the band"
-                  />
+                  <div className="call-out-band-container">
+                    <div className="emoji-container">
+                      {Reactions.map((reaction) => (
+                        <button
+                          key={reaction.name}
+                          className="reaction"
+                          onClick={() =>
+                            user && reactionClicked(user, reaction.type)
+                          }
+                          id={`send-reaction-${reaction.type}`}
+                        >
+                          <span role="img" aria-label={reaction.ariaLabel}>
+                            {reaction.text}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <CallOutMessageForm
+                      onSubmit={handleBandMessageSubmit(onBandMessageSubmit)}
+                      ref={registerBandMessage({ required: true })}
+                      isMessageToTheBandSent={isMessageToTheBandSent}
+                      placeholder="Shout out to the band"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
               {seatedAtTable && (
                 <Room
                   roomName={seatedAtTable}
