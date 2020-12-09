@@ -7,6 +7,7 @@ import { TicketCodeField } from "components/organisms/TicketCodeField";
 import { DateOfBirthField } from "components/organisms/DateOfBirthField";
 import { useSelector } from "hooks/useSelector";
 import { venueSelector } from "utils/selectors";
+import { VenueAccessType } from "types/VenueAcccess";
 
 interface PropsType {
   displayRegisterForm: () => void;
@@ -53,8 +54,9 @@ const LoginForm: React.FunctionComponent<PropsType> = ({
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      if (venue.requiresTicketCode) await axios.get(codeCheckUrl(data.code));
-      if (venue.requiresEmailVerification)
+      if (venue.access?.includes(VenueAccessType.CodeList))
+        await axios.get(codeCheckUrl(data.code));
+      if (venue.access?.includes(VenueAccessType.EmailList))
         await axios.get(codeCheckUrl(data.email));
 
       const auth = await signIn(data);
