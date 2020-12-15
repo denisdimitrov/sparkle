@@ -4,7 +4,6 @@ import { useFirebase } from "react-redux-firebase";
 import axios from "axios";
 import { codeCheckUrl } from "utils/url";
 import { TicketCodeField } from "components/organisms/TicketCodeField";
-import { DateOfBirthField } from "components/organisms/DateOfBirthField";
 import { useSelector } from "hooks/useSelector";
 import { venueSelector } from "utils/selectors";
 import { VenueAccessType } from "types/VenueAcccess";
@@ -42,7 +41,10 @@ const LoginForm: React.FunctionComponent<PropsType> = ({
     clearError,
   } = useForm<LoginFormData>({
     mode: "onChange",
+    reValidateMode: "onChange",
   });
+
+  if (!venue) return null;
 
   const clearBackendErrors = () => {
     clearError("backend");
@@ -53,6 +55,7 @@ const LoginForm: React.FunctionComponent<PropsType> = ({
   };
 
   const onSubmit = async (data: LoginFormData) => {
+    if (!venue) return;
     try {
       if (venue.access?.includes(VenueAccessType.CodeList))
         await axios.get(codeCheckUrl(data.code));
@@ -154,10 +157,6 @@ const LoginForm: React.FunctionComponent<PropsType> = ({
 
         {venue.requiresTicketCode && (
           <TicketCodeField register={register} error={errors?.code} />
-        )}
-
-        {venue.requiresDateOfBirth && (
-          <DateOfBirthField register={register} error={errors?.date_of_birth} />
         )}
 
         {errors.backend && (
