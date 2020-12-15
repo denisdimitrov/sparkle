@@ -269,8 +269,34 @@ const VenuePage = () => {
 
     // @debt convert this so token is needed to get venue config
     if (notEmpty(venue.access)) {
+      console.log("venue.access", venue.access);
       const token = localStorage.getItem(getAccessTokenKey(venueId));
+      console.log("found token:", token);
       if (!token) {
+        console.log("checking access");
+        firebase
+          .functions()
+          .httpsCallable("access-checkAccess")({
+            venueId,
+            token,
+          })
+          .then((result) => {
+            console.log(
+              "access check result:",
+              result,
+              "isTruthy result.data:",
+              isTruthy(result.data)
+            );
+            if (!isTruthy(result.data)) {
+              firebase
+                .auth()
+                .signOut()
+                .finally(() => {
+                  denyAccess();
+                });
+            }
+          });
+      } else {
         firebase
           .auth()
           .signOut()
@@ -278,22 +304,6 @@ const VenuePage = () => {
             denyAccess();
           });
       }
-      firebase
-        .functions()
-        .httpsCallable("access-checkAccess")({
-          venueId,
-          token,
-        })
-        .then((result) => {
-          if (!isTruthy(result.data)) {
-            firebase
-              .auth()
-              .signOut()
-              .finally(() => {
-                denyAccess();
-              });
-          }
-        });
     }
   }, [venue, venueId]);
 
