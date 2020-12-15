@@ -31,6 +31,7 @@ import {
 import { IFRAME_ALLOW } from "settings";
 import { isTruthy } from "utils/types";
 import { AuthOptions } from "components/organisms/AuthenticationModal/AuthenticationModal";
+import { VenueAccessType } from "types/VenueAcccess";
 
 export interface VenueLandingPageProps {
   venue: Firestore["data"]["currentVenue"];
@@ -123,7 +124,9 @@ export const VenueLandingPage: React.FunctionComponent<VenueLandingPageProps> = 
         : venueEntranceUrl(venueId);
   };
 
-  const hasSecretForm = isTruthy(venue.showSecretPasswordForm);
+  const hasPassword = isTruthy(
+    venue.access?.includes(VenueAccessType.Password)
+  );
 
   return (
     <WithNavigationBar>
@@ -151,14 +154,14 @@ export const VenueLandingPage: React.FunctionComponent<VenueLandingPageProps> = 
               {venue.config?.landingPageConfig.subtitle}
             </div>
           </div>
-          {venue.showSecretPasswordForm && (
+          {hasPassword && (
             <div className="secret-password-form-wrapper">
               <SecretPasswordForm
                 buttonText={venue.config?.landingPageConfig.joinButtonText}
               />
             </div>
           )}
-          {!hasSecretForm &&
+          {!hasPassword &&
             (!futureOrOngoingVenueEvents ||
               futureOrOngoingVenueEvents.length === 0) && (
               <button

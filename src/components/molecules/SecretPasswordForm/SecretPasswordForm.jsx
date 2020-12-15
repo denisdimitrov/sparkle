@@ -3,6 +3,7 @@ import { useParams, useHistory } from "react-router-dom";
 import { useFirebase } from "react-redux-firebase";
 import "./SecretPasswordForm.scss";
 import { venueEntranceUrl } from "utils/url";
+import { localStorageTokenKey } from "utils/localStorage";
 
 const SecretPasswordForm = ({ buttonText = "Join the party" }) => {
   const firebase = useFirebase();
@@ -20,22 +21,27 @@ const SecretPasswordForm = ({ buttonText = "Join the party" }) => {
     setError(false);
   }
 
-  function passwordSubmitted(e) {
+  const passwordSubmitted = async (e) => {
     e.preventDefault();
     setMessage("Checking password...");
 
-    const checkPassword = firebase.functions().httpsCallable("checkPassword");
-    checkPassword({ venue: venueId, password: password })
-      .then(() => {
-        setInvalidPassword(false);
-        setMessage("Password OK! Proceeding...");
-        history.push(venueEntranceUrl(venueId));
-      })
-      .catch(() => {
-        setInvalidPassword(true);
-        setMessage(null);
+    try {
+      const result = await firebase
+        .functions()
+        .httpsCallable("access-checkAccess")({
+        venueId,
+        password,
       });
-  }
+      localStorage.setItem(localStorageTokenKey(venueId), result.data.token);
+
+      setInvalidPassword(false);
+      setMessage("Password OK! Proceeding...");
+      history.push(venueEntranceUrl(venueId));
+    } catch (error) {
+      setInvalidPassword(true);
+      setMessage(`Password error: ${error.toString()}`);
+    }
+  };
 
   return (
     <>
