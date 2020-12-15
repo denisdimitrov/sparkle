@@ -29,7 +29,7 @@ import {
   updateLocationData,
   useLocationUpdateEffect,
 } from "utils/useLocationUpdateEffect";
-import { venueEntranceUrl, venueLandingUrl } from "utils/url";
+import { venueEntranceUrl } from "utils/url";
 
 import { useConnectCurrentEvent } from "hooks/useConnectCurrentEvent";
 import { useConnectPartyGoers } from "hooks/useConnectPartyGoers";
@@ -68,6 +68,7 @@ import { isCompleteProfile, updateProfileEnteredVenueIds } from "utils/profile";
 import { isTruthy, notEmpty } from "utils/types";
 import Login from "pages/Account/Login";
 import { getAccessTokenKey } from "utils/localStorage";
+import { AccessDeniedModal } from "components/atoms/AccessDeniedModal/AccessDeniedModal";
 
 const hasPaidEvents = (template: VenueTemplate) => {
   return template === VenueTemplate.jazzbar;
@@ -259,6 +260,13 @@ const VenuePage = () => {
 
   // Need a token to access the venue
   useEffect(() => {
+    if (!venue) return;
+
+    const denyAccess = () => {
+      localStorage.removeItem(getAccessTokenKey(venueId));
+      setIsAccessDenied(true);
+    };
+
     // @debt convert this so token is needed to get venue config
     if (notEmpty(venue.access)) {
       const token = localStorage.getItem(getAccessTokenKey(venueId));
@@ -266,25 +274,26 @@ const VenuePage = () => {
         firebase
           .auth()
           .signOut()
-          .then(() => {
-            localStorage.removeItem(getAccessTokenKey(venueId));
-            setIsAccessDenied(true);
+          .finally(() => {
+            denyAccess();
           });
       }
-      try {
-        firebase.functions().httpsCallable("access-checkAccess")({
+      firebase
+        .functions()
+        .httpsCallable("access-checkAccess")({
           venueId,
           token,
+        })
+        .then((result) => {
+          if (!isTruthy(result.data)) {
+            firebase
+              .auth()
+              .signOut()
+              .finally(() => {
+                denyAccess();
+              });
+          }
         });
-      } catch (err) {
-        firebase
-          .auth()
-          .signOut()
-          .then(() => {
-            localStorage.removeItem(getAccessTokenKey(venueId));
-            setIsAccessDenied(true);
-          });
-      }
     }
   }, [venue, venueId]);
 
@@ -297,7 +306,7 @@ const VenuePage = () => {
   }
 
   if (isAccessDenied) {
-    return <Redirect to={venueLandingUrl(venueId)} />;
+    return <AccessDeniedModal venueId={venueId} venueName={venue.name} />;
   }
 
   const hasEntrance = isTruthy(venue?.entrance);
