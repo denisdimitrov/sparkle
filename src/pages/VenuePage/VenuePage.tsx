@@ -67,7 +67,7 @@ import { PartyMapRouter } from "components/templates/PartyMap/PartyMapRouter";
 import { isCompleteProfile, updateProfileEnteredVenueIds } from "utils/profile";
 import { isTruthy, notEmpty } from "utils/types";
 import Login from "pages/Account/Login";
-import { localStorageTokenKey } from "utils/localStorage";
+import { getAccessTokenKey } from "utils/localStorage";
 
 const hasPaidEvents = (template: VenueTemplate) => {
   return template === VenueTemplate.jazzbar;
@@ -81,7 +81,7 @@ const VenuePage = () => {
   const history = useHistory();
   const [currentTimestamp] = useState(Date.now() / 1000);
   const [unmounted, setUnmounted] = useState(false);
-  const [accessDenied, setAccessDenied] = useState(false);
+  const [isAccessDenied, setIsAccessDenied] = useState(false);
 
   const { user, profile } = useUser();
 
@@ -261,12 +261,15 @@ const VenuePage = () => {
   useEffect(() => {
     // @debt convert this so token is needed to get venue config
     if (notEmpty(venue.access)) {
-      const token = localStorage.getItem(localStorageTokenKey(venueId));
+      const token = localStorage.getItem(getAccessTokenKey(venueId));
       if (!token) {
         firebase
           .auth()
           .signOut()
-          .then(() => setAccessDenied(true));
+          .then(() => {
+            localStorage.removeItem(getAccessTokenKey(venueId));
+            setIsAccessDenied(true);
+          });
       }
       try {
         firebase.functions().httpsCallable("access-checkAccess")({
@@ -277,7 +280,10 @@ const VenuePage = () => {
         firebase
           .auth()
           .signOut()
-          .then(() => setAccessDenied(true));
+          .then(() => {
+            localStorage.removeItem(getAccessTokenKey(venueId));
+            setIsAccessDenied(true);
+          });
       }
     }
   }, [venue, venueId]);
@@ -290,7 +296,7 @@ const VenuePage = () => {
     return <LoadingPage />;
   }
 
-  if (accessDenied) {
+  if (isAccessDenied) {
     return <Redirect to={venueLandingUrl(venueId)} />;
   }
 

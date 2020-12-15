@@ -3,7 +3,7 @@ import { useParams, useHistory } from "react-router-dom";
 import { useFirebase } from "react-redux-firebase";
 import "./SecretPasswordForm.scss";
 import { venueEntranceUrl } from "utils/url";
-import { localStorageTokenKey } from "utils/localStorage";
+import { getAccessTokenKey } from "utils/localStorage";
 
 const SecretPasswordForm = ({ buttonText = "Join the party" }) => {
   const firebase = useFirebase();
@@ -32,7 +32,7 @@ const SecretPasswordForm = ({ buttonText = "Join the party" }) => {
         venueId,
         password,
       });
-      localStorage.setItem(localStorageTokenKey(venueId), result.data.token);
+      localStorage.setItem(getAccessTokenKey(venueId), result.data.token);
 
       setInvalidPassword(false);
       setMessage("Password OK! Proceeding...");
